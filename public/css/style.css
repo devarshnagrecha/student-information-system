@@ -1,0 +1,49 @@
+.table-container {
+    overflow: hidden;
+    overflow-y: scroll;
+    height: 100%;
+}
+
+.my-table {
+    width: 80%;
+    margin-left: 10%
+}
+
+table,
+th,
+td {
+    border: 1px solid black;
+    border-collapse: collapse;
+    text-align: center;
+}
+
+th,
+td {
+    padding: 8px;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2
+}
+
+th {
+    background-color: lightblue;
+    color: black;
+    border-collapse: collapse;
+}
+
+.table-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+#table-data {
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    top: 40%;
+}

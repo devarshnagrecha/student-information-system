@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/style.css">
+    <title>Document</title>
+</head>
+
+<body>
+        <form action="/addProgram" method="post">
+            <select name="degree" id="degree" required>
+                <option value="select" selected>Select</option>
+
+                <% for (var i=0; i <degree.length; i++) { %>
+                    <option value="<%= degree[i].id %>">
+                        <%= degree[i].name %>
+                    </option>
+                    <% } %>
+
+            </select>
+            <br>
+            <select name="branch" id="branch" required>
+                <option value="Select" selected>Select</option>
+
+                <% for (var i=0; i <branch.length; i++) { %>
+                    <option value="<%= branch[i].id %>">
+                        <%= branch[i].name %>
+                    </option>
+                    <% } %>
+
+            </select>
+            <br>
+            <table>
+                <tr>
+                    <th>SR No</th>
+                    <th>Name</th>
+                    <th>Code</th>
+                    <th>Credit</th>
+                    <th>Select</th>
+                </tr>
+                <% for (var i=0; i <course.length; i++) { %>
+                    <tr>
+                        <td> <%= i+1 %> </td>
+                        <td>
+                            <%= course[i].name %>
+                        </td>
+                        <td>
+                            <%= course[i].code %>
+                        </td>
+                        <td>
+                            <%= course[i].credits %>
+                        </td>
+                        <td> <input type="checkbox" id="" name="course" value="<%= course[i].id %>"><span class="checkmark"></span></td>
+                    </tr>
+                    <% } %>
+            </table>
+            <button type="submit">Submit</button>
+        </form>
+
+</body>
+
+</html>
