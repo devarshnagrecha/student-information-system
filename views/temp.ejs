@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <form action="/addSemester" method="post">
+        <h3>Step - 2</h3>
+        <hr>
+        <h4> <%= populatedSemesterProgram.name %></h4>
+        <% console.log(populatedSemesterProgram) %>
+        <br>
+
+        <% for (var i=0; i <populatedSemesterProgram.programsOffered.length; i++) { %>
+            <h3> <%= i+1 %> </h3>
+            <h3> <%= populatedSemesterProgram.programsOffered[i].degreeOffered.name  %> </h3>
+            <h3> <%= populatedSemesterProgram.programsOffered[i].branchOffered.name %> </h3>
+            <table>
+                <tr>
+                    <th>SR No</th>
+                    <th>Course name</th>
+                    <th>Course code</th>
+                    <th>Course credits</th>
+                    <th>Instructor</th>
+                </tr>
+                <% for (var j=0; j <populatedSemesterProgram[i].coursesOffered.length; j++) { %>
+                    <tr>
+                        <td> <%= j+1 %> </td>
+                        <td>
+                            <%= populatedSemesterProgram[i].coursesOffered.name %>
+                        </td>
+                        <td>
+                            <%= populatedSemesterProgram[i].coursesOffered.code %>
+                        </td>
+                        <td>
+                            <%= populatedSemesterProgram[i].coursesOffered.credits %>
+                        </td>
+                        <td> 
+                            <select name="" id="" required>
+                                <option value="Select" selected>Select</option>
+                            </select>
+                        </td>
+                    </tr>
+                <% } %>
+            </table>
+            <hr>
+        <% } %>
+        <button type="submit">Next</button>
+    </form>
+
+</body>
+
+</html>

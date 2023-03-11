@@ -115,12 +115,13 @@ const adminSchema = new mongoose.Schema({
 });
 
 const instructorSchema = new mongoose.Schema({
-    name: String,
-    email: String,
-    password: String
+    name: String
+    // email: String,
+    // password: String
 })
 
 const courseAssignmentSchema = new mongoose.Schema({
+    programAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'Program' },
     courseAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
     instructorAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'Instructor' },
     semesterAssigned: { type: mongoose.Schema.Types.ObjectId, ref: 'Semester' }
@@ -256,12 +257,90 @@ app.get('/addSemester', (req, res) => {
         .populate(['degreeOffered', 'branchOffered', 'coursesOffered'])
         .exec()
         .then((program) => {
-            res.render('addSemester.ejs', {program});
+            res.render('addSemester.ejs', { program });
         })
         .catch((err) => {
             console.log(err);
         });
 });
+
+app.post('/addSemester', (req, res) => {
+
+    const newSemester = new Semester({
+        name: req.body.name,
+        programsOffered: req.body.program
+
+    });
+
+    newSemester.save()
+        .then(savedSemester => 
+            {
+            return Semester.populate(savedSemester, {
+                path: 'programsOffered',
+                populate: [
+                    { path: 'degreeOffered', model: Degree },
+                    { path: 'branchOffered', model: Branch },
+                    { path: 'coursesOffered', model: Course }
+                ]
+            });
+        })
+        .then(populatedSemester => {
+            
+            Instructor.find({})
+                .then((instructor) => {
+                    res.render('assignCourse.ejs', {populatedSemester, instructor});
+                })
+                .catch(err => {
+                    console.error(err);
+                });
+        })
+        .catch(err => {
+            console.error(err);
+        });
+
+})
+
+app.post('/assignCourse', (req, res) => {
+
+    for (var i = 0; i <req.body.courseAssigned.length; i++) {
+
+        const tuple = req.body.courseAssigned[i].split(" ");
+
+        Semester.findById(tuple[0])
+            .then((semester) => {
+                Program.findById(tuple[1])
+                    .then((program) => {
+                        Course.findById(tuple[2])
+                            .then((course) => {
+                                Instructor.findById(tuple[3])
+                                    .then((instructor) => {
+                                        const newCourseAssignment = new CourseAssignment({
+                                            semesterAssigned: semester,
+                                            programAssigned: program,
+                                            courseAssigned: course,
+                                            instructorAssigned: instructor
+                                        });
+
+                                        newCourseAssignment.save();
+                                    })
+                                    .catch(err => {
+                                        console.error(err);
+                                    });
+                            })
+                            .catch(err => {
+                                console.error(err);
+                            });
+                    })
+                    .catch(err => {
+                        console.error(err);
+                    });
+            })
+            .catch(err => {
+                console.error(err);
+            });
+    }
+    res.redirect('/adminHome');
+})
 
 app.listen(3000, function () {
     console.log("Server started on port 3000");

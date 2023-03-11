@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <form action="/assignCourse" method="post">
+        <h3>Step - 2</h3>
+        <hr>
+        <h4>
+            <%= populatedSemester.name %>
+        </h4>
+            <br>
+
+            <% for (var i=0; i <populatedSemester.programsOffered.length; i++) { %>
+                <h3>
+                    <%= i+1 %>
+                </h3>
+                <h3>
+                    <%= populatedSemester.programsOffered[i].degreeOffered.name %>
+                </h3>
+                <h3>
+                    <%= populatedSemester.programsOffered[i].branchOffered.name %>
+                </h3>
+                <table>
+                    <tr>
+                        <th>SR No</th>
+                        <th>Course name</th>
+                        <th>Course code</th>
+                        <th>Course credits</th>
+                        <th>Instructor</th>
+                    </tr>
+                    <% for (var j=0; j <populatedSemester.programsOffered[i].coursesOffered.length; j++) { %>
+                        <tr>
+                            <td>
+                                <%= j+1 %>
+                            </td>
+                            <td>
+                                <%= populatedSemester.programsOffered[i].coursesOffered[j].name %>
+                            </td>
+                            <td>
+                                <%= populatedSemester.programsOffered[i].coursesOffered[j].code %>
+                            </td>
+                            <td>
+                                <%= populatedSemester.programsOffered[i].coursesOffered[j].credits %>
+                            </td>
+                            <td>
+                                <select name="courseAssigned" id="">
+                                    <option value="Select" selected>Select</option>
+
+                                    <% for (var k=0; k <instructor.length; k++) { %>
+                                        
+                                        <% var w=populatedSemester.id ; %>
+                                        <% var x=populatedSemester.programsOffered[i].id ; %>
+                                        <% var y=populatedSemester.programsOffered[i].coursesOffered[j].id; %>
+                                        <% var z=instructor[k].id; %>
+
+                                        <option value="<%= w + " " + x + " " + y + " " + z %>">
+                                            <%= instructor[k].name %>
+                                        </option>
+                                    <% } %>
+
+                                </select>
+                            </td>
+                        </tr>
+                        <% } %>
+                </table>
+                <hr>
+                <% } %>
+                    <button type="submit">Submit</button>
+    </form>
+
+</body>
+
+</html>
