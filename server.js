@@ -12,6 +12,8 @@ const flash = require('express-flash');
 const session = require('express-session');
 const methodOverride = require('method-override');
 const PDFDocument = require('pdfkit');
+const { Table } = require('pdfkit-table');
+const fs = require('fs');
 const { type } = require("os");
 
 const passportStudent = require('passport');
@@ -94,6 +96,7 @@ const programSchema = new mongoose.Schema({
 
 const semesterSchema = new mongoose.Schema({
     name: String,
+    dateCreated: Date,
     programsOffered: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Program' }]
 })
 
@@ -149,7 +152,7 @@ const Instructor = mongoose.model("Instructor", instructorSchema);
 const CourseAssignment = mongoose.model("CourseAssignment", courseAssignmentSchema);
 const CourseEnrollment = mongoose.model("CourseEnrollment", courseEnrollmentSchema);
 
-app.get('/', (req,res) => {
+app.get('/', (req, res) => {
     res.render('/index.ejs');
 })
 
@@ -495,6 +498,7 @@ app.post('/addSemester', (req, res) => {
 
     const newSemester = new Semester({
         name: req.body.name,
+        dateCreated: new Date(),
         programsOffered: req.body.program
 
     });
@@ -565,34 +569,116 @@ app.post('/assignCourse', (req, res) => {
                 console.error(err);
             });
     }
-    res.redirect('/viewSemester');
+    res.redirect('/generate-pdf');
 })
 
 app.get('/generate-pdf', (req, res) => {
+
     const doc = new PDFDocument();
+    const writeStream = fs.createWriteStream('example.pdf');
     doc.pipe(res);
 
-    // fetch data from the database
-
-    CourseAssignment.find({ _id: req.body.btn })
+    Semester.find()
+        .sort({ dateCreated: -1 })
+        .limit(1)
+        .populate({
+            path: 'programsOffered',
+            populate: [
+                { path: 'degreeOffered', model: Degree },
+                { path: 'branchOffered', model: Branch },
+                { path: 'coursesOffered', model: Course }
+            ]
+        })
+        .exec()
         .then((semester) => {
+            CourseAssignment.find({ semesterAssigned: semester })
+                .populate([
+                    {
+                        path: 'programAssigned',
+                        populate: [
+                            { path: 'degreeOffered', model: Degree },
+                            { path: 'branchOffered', model: Branch }
+                        ]
+                    },
+                    {
+                        path: 'instructorAssigned'
+                    },
+                    {
+                        path: 'courseAssigned'
+                    },
+                    {
+                        path: 'semesterAssigned'
+                    }
+                ])
+                .exec()
+                .then((semesterAssignments) => {
 
-            doc.font('Helvetica-Bold');
-            const tableHeaders = ['ID', 'Name', 'Email'];
-            const tableRows = users.map(user => [user._id, user.name, user.email]);
-            doc.table([tableHeaders, ...tableRows], {
-                prepareHeader: () => doc.font('Helvetica-Bold'),
-                prepareRow: (row, i) => doc.font('Helvetica').fontSize(10)
-            })
+                    doc.fontSize(20)
+                        .text(semester[0].name, { align: 'center' })
+                        .moveDown();
 
-            doc.end();
+                    for (var i=0; i<semesterAssignments.length; i++)
+                    {
+                        doc.fontSize(10)
+                        .text(`${semesterAssignments[i].programAssigned.degreeOffered.name} ${semesterAssignments[i].programAssigned.branchOffered.name} - ${semesterAssignments[i].courseAssigned.name} : ${semesterAssignments[i].instructorAssigned.name}`, { align: 'center' })
+                        .moveDown();
+                    }
+                    // const tableHeaders = ['Sr No.', 'Program', 'Course', 'Instructor'];
+                    // const tableRows = semesterAssignments.map(x => ["a", "b", "c", "d"]);
+                    // const table = new Table();
+                    // table.addBody([tableHeaders, ...tableRows]);
+                    // doc.addTable(table);
 
-            // finish and send the PDF document
-
+                    doc.end();
+                })
+                .catch(err => {
+                    console.error(err);
+                });
         })
         .catch(err => {
             console.error(err);
         });
+    // fetch data from the database
+
+    // doc.fontSize(20)
+    //     .text('My Complex PDF Document', { align: 'center' })
+    //     .moveDown();
+
+    // doc.fontSize(16)
+    //     .text('Table of Contents', { underline: true })
+    //     .moveDown();
+
+    // doc.list([
+    //     { text: 'Introduction', link: '#introduction' },
+    //     { text: 'Chapter 1 - Getting Started', link: '#chapter1' },
+    //     { text: 'Chapter 2 - Advanced Topics', link: '#chapter2' },
+    // ]);
+
+    // doc.addPage();
+    // doc.fontSize(24)
+    //     .text('Introduction', { id: 'introduction', underline: true })
+    //     .moveDown();
+
+    // doc.fontSize(16)
+    //     .text('Welcome to my complex PDF document!')
+    //     .moveDown();
+
+    // doc.fontSize(24)
+    //     .text('Chapter 1 - Getting Started', { id: 'chapter1', underline: true })
+    //     .moveDown();
+
+    // doc.fontSize(16)
+    //     .text('This chapter will cover the basics of getting started with my complex PDF document.')
+    //     .moveDown();
+
+    // doc.fontSize(24)
+    //     .text('Chapter 2 - Advanced Topics', { id: 'chapter2', underline: true })
+    //     .moveDown();
+
+    // doc.fontSize(16)
+    //     .text('This chapter will cover some more advanced topics related to my complex PDF document.');
+
+
 });
 
 app.listen(3000, function () {
