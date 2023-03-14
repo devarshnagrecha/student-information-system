@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Document</title>
+</head>
+
+<body>
+    <h3>Semesters</h3>
+    <table>
+        <tr>
+            <th>SR No</th>
+            <th>Name</th>
+            <th>Edit</th>
+            <th>Delete</th>
+        </tr>
+        <% if (semester.length==0) {%>
+            <tr>
+                <td colspan="4">
+                    No semesters found
+                </td> 
+            </tr>
+        <% } %>
+        <% for (var i=0; i <semester.length; i++) { %>
+            <tr>
+                <td>
+                    <%= i+1 %>
+                </td>
+                <td>
+                    <%= semester[i].name %>
+                </td>
+                <td>
+                    <button><i class='far fa-edit'></i></button>
+                </td>
+                <td>
+                    <button><i class='far fa-trash-alt'></i></button>
+                </td>
+            </tr>
+            <% } %>
+    </table>
+    <br>
+    <button onclick="window.location.href = '/addSemester'"> Add Semester </button>
+
+    <script src="https://kit.fontawesome.com/2bdd553bc7.js" crossorigin="anonymous"></script>
+</body>
+
+</html>

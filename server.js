@@ -11,6 +11,7 @@ const bcrypt = require('bcrypt');
 const flash = require('express-flash');
 const session = require('express-session');
 const methodOverride = require('method-override');
+const PDFDocument = require('pdfkit');
 const { type } = require("os");
 
 const passportStudent = require('passport');
@@ -148,8 +149,234 @@ const Instructor = mongoose.model("Instructor", instructorSchema);
 const CourseAssignment = mongoose.model("CourseAssignment", courseAssignmentSchema);
 const CourseEnrollment = mongoose.model("CourseEnrollment", courseEnrollmentSchema);
 
+app.get('/', (req,res) => {
+    res.render('/index.ejs');
+})
+
 app.get('/adminHome', (req, res) => {
     res.render('adminHome.ejs');
+});
+
+app.get('/viewCourse', (req, res) => {
+
+    Course.find({})
+        .then((course) => {
+            res.render('viewCourse.ejs', { course });
+        })
+        .catch((err) => {
+            console.error(err);
+        });
+});
+
+app.post('/viewCourse', (req, res) => {
+    if (req.body.delete) {
+        Course.deleteOne({ _id: req.body.delete })
+            .then(() => {
+                Course.find({})
+                    .then((course) => {
+                        res.render('viewCourse.ejs', { course });
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                    });
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+    }
+
+    else {
+        Course.findOne({ _id: req.body.edit })
+            .then((course) => {
+                res.render('updateCourse.ejs', { course });
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+
+    }
+})
+
+app.post('/updateCourse', (req, res) => {
+    Course.updateOne({ _id: req.body.btn }, { name: req.body.name, credits: req.body.credits, code: req.body.code, description: req.body.description })
+        .then(() => {
+            Course.find({})
+                .then((course) => {
+                    res.render('viewCourse.ejs', { course });
+                })
+                .catch((err) => {
+                    console.error(err);
+                });
+        })
+        .catch((err) => {
+            console.error(err);
+        });
+})
+
+app.get('/viewDegree', (req, res) => {
+
+    Degree.find({})
+        .then((degree) => {
+            res.render('viewDegree.ejs', { degree });
+        })
+        .catch((err) => {
+            console.error(err);
+        });
+});
+
+app.post('/viewDegree', (req, res) => {
+    if (req.body.delete) {
+        Degree.deleteOne({ _id: req.body.delete })
+            .then(() => {
+                Degree.find({})
+                    .then((degree) => {
+                        res.render('viewDegree.ejs', { degree });
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                    });
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+    }
+
+    else {
+        Degree.findOne({ _id: req.body.edit })
+            .then((degree) => {
+                res.render('updateDegree.ejs', { degree });
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+
+    }
+})
+
+app.post('/updateDegree', (req, res) => {
+    Degree.updateOne({ _id: req.body.btn }, { name: req.body.name })
+        .then(() => {
+            Degree.find({})
+                .then((degree) => {
+                    res.render('viewDegree.ejs', { degree });
+                })
+                .catch((err) => {
+                    console.error(err);
+                });
+        })
+        .catch((err) => {
+            console.error(err);
+        });
+})
+
+
+app.get('/viewBranch', (req, res) => {
+
+    Branch.find({})
+        .then((branch) => {
+            res.render('viewBranch.ejs', { branch });
+        })
+        .catch((err) => {
+            console.error(err);
+        });
+});
+
+app.post('/viewBranch', (req, res) => {
+    if (req.body.delete) {
+        Branch.deleteOne({ _id: req.body.delete })
+            .then(() => {
+                Branch.find({})
+                    .then((branch) => {
+                        res.render('viewBranch.ejs', { branch });
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                    });
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+    }
+
+    else {
+        Branch.findOne({ _id: req.body.edit })
+            .then((branch) => {
+                res.render('updateBranch.ejs', { branch });
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+
+    }
+})
+
+app.post('/updateBranch', (req, res) => {
+    Branch.updateOne({ _id: req.body.btn }, { name: req.body.name })
+        .then(() => {
+            Branch.find({})
+                .then((branch) => {
+                    res.render('viewBranch.ejs', { branch });
+                })
+                .catch((err) => {
+                    console.error(err);
+                });
+        })
+        .catch((err) => {
+            console.error(err);
+        });
+})
+
+app.get('/viewProgram', (req, res) => {
+
+    Program.find({})
+        .populate(['degreeOffered', 'branchOffered', 'coursesOffered'])
+        .exec()
+        .then((program) => {
+            res.render('viewProgram.ejs', { program });
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+});
+
+app.post('/viewProgram', (req, res) => {
+    if (req.body.delete) {
+        Program.deleteOne({ _id: req.body.delete })
+            .then(() => {
+                Program.find({})
+                    .then((program) => {
+                        res.render('viewProgram.ejs', { program });
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                    });
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+    }
+
+    else {
+        Program.findOne({ _id: req.body.edit })
+            .then((program) => {
+                res.render('updateProgram.ejs', { program });
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+
+    }
+})
+
+app.get('/viewSemester', (req, res) => {
+
+    Semester.find({})
+        .then((semester) => {
+            res.render('viewSemester.ejs', { semester });
+        })
+        .catch((err) => {
+            console.error(err);
+        });
 });
 
 app.get('/addCourse', (req, res) => {
@@ -166,7 +393,7 @@ app.post('/addCourse', (req, res) => {
     });
 
     newCourse.save();
-    res.redirect('/adminHome');
+    res.redirect('/viewCourse');
 });
 
 app.get('/addDegree', (req, res) => {
@@ -180,7 +407,7 @@ app.post('/addDegree', (req, res) => {
     });
 
     newDegree.save();
-    res.redirect('/adminHome');
+    res.redirect('/viewDegree');
 });
 
 app.get('/addBranch', (req, res) => {
@@ -194,7 +421,7 @@ app.post('/addBranch', (req, res) => {
     });
 
     newBranch.save();
-    res.redirect('/adminHome');
+    res.redirect('/viewBranch');
 });
 
 app.get('/addProgram', (req, res) => {
@@ -236,7 +463,7 @@ app.post('/addProgram', (req, res) => {
 
                             newProgram.save();
                             console.log(newProgram);
-                            res.redirect('/adminHome');
+                            res.redirect('/viewProgram');
                         })
                         .catch((err) => {
                             console.error(err);
@@ -273,8 +500,7 @@ app.post('/addSemester', (req, res) => {
     });
 
     newSemester.save()
-        .then(savedSemester => 
-            {
+        .then(savedSemester => {
             return Semester.populate(savedSemester, {
                 path: 'programsOffered',
                 populate: [
@@ -285,10 +511,10 @@ app.post('/addSemester', (req, res) => {
             });
         })
         .then(populatedSemester => {
-            
+
             Instructor.find({})
                 .then((instructor) => {
-                    res.render('assignCourse.ejs', {populatedSemester, instructor});
+                    res.render('assignCourse.ejs', { populatedSemester, instructor });
                 })
                 .catch(err => {
                     console.error(err);
@@ -302,7 +528,7 @@ app.post('/addSemester', (req, res) => {
 
 app.post('/assignCourse', (req, res) => {
 
-    for (var i = 0; i <req.body.courseAssigned.length; i++) {
+    for (var i = 0; i < req.body.courseAssigned.length; i++) {
 
         const tuple = req.body.courseAssigned[i].split(" ");
 
@@ -339,8 +565,35 @@ app.post('/assignCourse', (req, res) => {
                 console.error(err);
             });
     }
-    res.redirect('/adminHome');
+    res.redirect('/viewSemester');
 })
+
+app.get('/generate-pdf', (req, res) => {
+    const doc = new PDFDocument();
+    doc.pipe(res);
+
+    // fetch data from the database
+
+    CourseAssignment.find({ _id: req.body.btn })
+        .then((semester) => {
+
+            doc.font('Helvetica-Bold');
+            const tableHeaders = ['ID', 'Name', 'Email'];
+            const tableRows = users.map(user => [user._id, user.name, user.email]);
+            doc.table([tableHeaders, ...tableRows], {
+                prepareHeader: () => doc.font('Helvetica-Bold'),
+                prepareRow: (row, i) => doc.font('Helvetica').fontSize(10)
+            })
+
+            doc.end();
+
+            // finish and send the PDF document
+
+        })
+        .catch(err => {
+            console.error(err);
+        });
+});
 
 app.listen(3000, function () {
     console.log("Server started on port 3000");

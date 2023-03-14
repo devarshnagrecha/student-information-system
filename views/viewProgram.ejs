@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Document</title>
+</head>
+
+<body>
+    <h3>Programs</h3>
+    <form action="/viewProgram" method="post">
+        <table>
+            <tr>
+                <th>SR No</th>
+                <th>Degree</th>
+                <th>Branch</th>
+                <th>Courses</th>
+                <th>Edit</th>
+                <th>Delete</th>
+            </tr>
+            <% if (program.length==0) {%>
+                <tr>
+                    <td colspan="6">
+                        No programs found
+                    </td> 
+                </tr>
+            <% } %>
+            <% for (var i=0; i <program.length; i++) { %>
+                <tr>
+                    <td>
+                        <%= i+1 %>
+                    </td>
+                    <td>
+                        <%= program[i].degreeOffered.name %>
+                    </td>
+                    <td>
+                        <%= program[i].branchOffered.name %>
+                    </td>
+
+                    <td>
+
+                        <% for (var j=0; j <program[i].coursesOffered.length; j++) { %>
+
+                            <%= j+1 %>
+                                <%= program[i].coursesOffered[j].name %>
+
+                                    <% if (j!=program[i].coursesOffered.length-1) {%>
+                                        <hr>
+                                        <% } %>
+
+                                            <% } %>
+
+                    </td>
+
+                    <td>
+                        <button type='submit' name="edit" value="<%= program[i].id %>"><i
+                                class='far fa-edit'></i></button>
+                    </td>
+                    <td>
+                        <button type='submit' name="delete" value="<%= program[i].id %>" class="delete-btn"><i
+                                class='far fa-trash-alt'></i></button>
+                    </td>
+                </tr>
+                <% } %>
+        </table>
+    </form>
+
+    <br>
+    <button onclick="window.location.href = '/addProgram'"> Add Program </button>
+
+    <script src="https://kit.fontawesome.com/2bdd553bc7.js" crossorigin="anonymous"></script>
+    <script>
+        let btns = document.getElementsByClassName('delete-btn');
+
+        for (i of btns) {
+            i.addEventListener('click', function () {
+                if (!confirm("Are you sure you want to delete?")) {
+                    event.preventDefault();
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>
