@@ -15,6 +15,8 @@ const PDFDocument = require('pdfkit');
 const { Table } = require('pdfkit-table');
 const fs = require('fs');
 const { type } = require("os");
+const nodemailer = require('nodemailer');
+const EmailTemplate = require('email-templates').EmailTemplate;
 
 const passportStudent = require('passport');
 const passportInstructor = require('passport');
@@ -110,6 +112,7 @@ const studentSchema = new mongoose.Schema({
     password: String,
     dob: Date,
     gender: String,
+    parentEmail: String,
     programRegistered: { type: mongoose.Schema.Types.ObjectId, ref: 'Program' },
 });
 
@@ -344,7 +347,7 @@ app.get('/viewProgram', (req, res) => {
 
 app.post('/viewProgram', (req, res) => {
     if (req.body.delete) {
-        Program.deleteOne({ _id: req.body.delete })
+        Program.deleteOne({ '_id': req.body.delete })
             .then(() => {
                 Program.find({})
                     .then((program) => {
@@ -360,7 +363,7 @@ app.post('/viewProgram', (req, res) => {
     }
 
     else {
-        Program.findOne({ _id: req.body.edit })
+        Program.findOne({ '_id': req.body.edit })
             .then((program) => {
                 res.render('updateProgram.ejs', { program });
             })
@@ -374,6 +377,7 @@ app.post('/viewProgram', (req, res) => {
 app.get('/viewSemester', (req, res) => {
 
     Semester.find({})
+        .sort({ dateCreated: -1 })
         .then((semester) => {
             res.render('viewSemester.ejs', { semester });
         })
@@ -381,6 +385,37 @@ app.get('/viewSemester', (req, res) => {
             console.error(err);
         });
 });
+
+app.post('/viewSemester', (req, res) => {
+    if (req.body.delete) {
+
+        Semester.findOne({ '_id': req.body.delete })
+            .then((semester) => {
+                CourseAssignment.deleteMany({ semesterAssigned: semester })
+                    .then(() => {
+                        Semester.deleteOne({ '_id': req.body.delete })
+                            .then(() => {
+                                res.render('viewSemester.ejs', { semester });
+                            })
+                            .catch((err) => {
+                                console.error(err);
+                            });
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                    });
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+    }
+
+    else {
+
+
+    }
+})
+
 
 app.get('/addCourse', (req, res) => {
     res.render('addCourse.ejs');
@@ -617,19 +652,11 @@ app.get('/generate-pdf', (req, res) => {
                         .text(semester[0].name, { align: 'center' })
                         .moveDown();
 
-                    for (var i=0; i<semesterAssignments.length; i++)
-                    {
+                    for (var i = 0; i < semesterAssignments.length; i++) {
                         doc.fontSize(10)
-                        .text(`${semesterAssignments[i].programAssigned.degreeOffered.name} ${semesterAssignments[i].programAssigned.branchOffered.name} - ${semesterAssignments[i].courseAssigned.name} : ${semesterAssignments[i].instructorAssigned.name}`, { align: 'center' })
-                        .moveDown();
+                            .text(`${semesterAssignments[i].programAssigned.degreeOffered.name} ${semesterAssignments[i].programAssigned.branchOffered.name} - ${semesterAssignments[i].courseAssigned.name} : ${semesterAssignments[i].instructorAssigned.name}`, { align: 'center' })
+                            .moveDown();
                     }
-                    // const tableHeaders = ['Sr No.', 'Program', 'Course', 'Instructor'];
-                    // const tableRows = semesterAssignments.map(x => ["a", "b", "c", "d"]);
-                    // const table = new Table();
-                    // table.addBody([tableHeaders, ...tableRows]);
-                    // doc.addTable(table);
-
-                    doc.end();
                 })
                 .catch(err => {
                     console.error(err);
@@ -680,6 +707,173 @@ app.get('/generate-pdf', (req, res) => {
 
 
 });
+
+app.get('/addStudent', (req, res) => {
+    res.render('addStudent.ejs');
+})
+
+app.post('/addStudent', (req, res) => {
+
+    function generateP() {
+        var pass = '';
+        var str = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' +
+            'abcdefghijklmnopqrstuvwxyz0123456789@#$';
+
+        for (let i = 1; i <= 10; i++) {
+            var char = Math.floor(Math.random()
+                * str.length + 1);
+
+            pass += str.charAt(char)
+        }
+
+        return pass;
+    }
+
+    Student.findOne({ email: req.body.email })
+        .then((student) => {
+
+            if (student != null) {
+                res.redirect('/adminHome');
+            }
+
+            else {
+                const randomPass = generateP();
+                bcrypt.hash(randomPass, saltRounds)
+                    .then((hashedPassword) => {
+
+                        const newStudent = new Student({
+                            email: req.body.email,
+                            password: hashedPassword
+                        });
+
+                        newStudent.save();
+
+                        var transporter = nodemailer.createTransport({
+                            service: 'gmail',
+                            auth: {
+                              user: 'devarshnagrecha58@gmail.com',
+                              pass: process.env.GMAILPASSWORD
+                            }
+                          });
+                          
+                          var mailOptions = {
+                            from: 'devarshnagrecha58@gmail.com',
+                            to: req.body.email,
+                            subject: 'Student Information System',
+                            text: `Your account has been created! Your password is ${randomPass}`
+                          };
+                          
+                          transporter.sendMail(mailOptions, function(error, info){
+                            if (error) {
+                              console.log(error);
+                            } else {
+                              console.log('Email sent: ' + info.response);
+                            }
+                          });
+
+                        res.redirect('/addStudent');
+
+                    })
+                    .catch(err => {
+                        console.log('Error:', err);
+                    })
+            }
+        })
+        .catch(err => {
+            console.log('Error:', err);
+        })
+})
+
+app.get('/addInstructor', (req, res) => {
+    res.render('/addInstructor.ejs');
+})
+
+app.post('/addInstructor', (req, res) => {
+
+    function generateP() {
+        var pass = '';
+        var str = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' +
+            'abcdefghijklmnopqrstuvwxyz0123456789@#$';
+
+        for (let i = 1; i <= 10; i++) {
+            var char = Math.floor(Math.random()
+                * str.length + 1);
+
+            pass += str.charAt(char)
+        }
+
+        return pass;
+    }
+
+    Instructor.findOne({ email: req.body.email })
+        .then((instructor) => {
+
+            if (instructor != null) {
+                res.redirect('/adminHome');
+            }
+
+            else {
+                const randomPass = generateP();
+                bcrypt.hash(randomPass, saltRounds)
+                    .then((hashedPassword) => {
+
+                        const newInstructor = new Instructor({
+                            email: req.body.email,
+                            password: hashedPassword
+                        });
+
+                        newInstructor.save();
+
+                        var transporter = nodemailer.createTransport({
+                            service: 'gmail',
+                            auth: {
+                              user: 'devarshnagrecha58@gmail.com',
+                              pass: process.env.GMAILPASSWORD
+                            }
+                          });
+                          
+                          var mailOptions = {
+                            from: 'devarshnagrecha58@gmail.com',
+                            to: req.body.email,
+                            subject: 'Student Information System',
+                            text: `Your account has been created! Your password is ${randomPass}`
+                          };
+                          
+                          transporter.sendMail(mailOptions, function(error, info){
+                            if (error) {
+                              console.log(error);
+                            } else {
+                              console.log('Email sent: ' + info.response);
+                            }
+                          });
+
+                        res.redirect('/addInstructor');
+
+                    })
+                    .catch(err => {
+                        console.log('Error:', err);
+                    })
+            }
+        })
+        .catch(err => {
+            console.log('Error:', err);
+        })
+})
+
+app.get('/studentLogin', (req, res) => {
+    res.render('studentLogin.ejs')
+})
+
+app.post('/studentLogin', passportStudent.authenticate('student', {
+    successRedirect: '/studentHome',
+    failureRedirect: '/studentLogin',
+    failureFlash: true
+}))
+
+app.get('/instructorLogin', (req, res) => {
+    res.render('instructorLogin.ejs')
+})
+
 
 app.listen(3000, function () {
     console.log("Server started on port 3000");
