@@ -109,6 +109,7 @@ const studentSchema = new mongoose.Schema({
     studentID: String,
     mobileNO: String,
     email: String,
+    myemail: String,
     password: String,
     dob: Date,
     gender: String,
@@ -751,25 +752,25 @@ app.post('/addStudent', (req, res) => {
                         var transporter = nodemailer.createTransport({
                             service: 'gmail',
                             auth: {
-                              user: 'devarshnagrecha58@gmail.com',
-                              pass: process.env.GMAILPASSWORD
+                                user: 'devarshnagrecha58@gmail.com',
+                                pass: process.env.GMAILPASSWORD
                             }
-                          });
-                          
-                          var mailOptions = {
+                        });
+
+                        var mailOptions = {
                             from: 'devarshnagrecha58@gmail.com',
                             to: req.body.email,
                             subject: 'Student Information System',
                             text: `Your account has been created! Your password is ${randomPass}`
-                          };
-                          
-                          transporter.sendMail(mailOptions, function(error, info){
+                        };
+
+                        transporter.sendMail(mailOptions, function (error, info) {
                             if (error) {
-                              console.log(error);
+                                console.log(error);
                             } else {
-                              console.log('Email sent: ' + info.response);
+                                console.log('Email sent: ' + info.response);
                             }
-                          });
+                        });
 
                         res.redirect('/addStudent');
 
@@ -827,25 +828,25 @@ app.post('/addInstructor', (req, res) => {
                         var transporter = nodemailer.createTransport({
                             service: 'gmail',
                             auth: {
-                              user: 'devarshnagrecha58@gmail.com',
-                              pass: process.env.GMAILPASSWORD
+                                user: 'devarshnagrecha58@gmail.com',
+                                pass: process.env.GMAILPASSWORD
                             }
-                          });
-                          
-                          var mailOptions = {
+                        });
+
+                        var mailOptions = {
                             from: 'devarshnagrecha58@gmail.com',
                             to: req.body.email,
                             subject: 'Student Information System',
                             text: `Your account has been created! Your password is ${randomPass}`
-                          };
-                          
-                          transporter.sendMail(mailOptions, function(error, info){
+                        };
+
+                        transporter.sendMail(mailOptions, function (error, info) {
                             if (error) {
-                              console.log(error);
+                                console.log(error);
                             } else {
-                              console.log('Email sent: ' + info.response);
+                                console.log('Email sent: ' + info.response);
                             }
-                          });
+                        });
 
                         res.redirect('/addInstructor');
 
@@ -860,7 +861,7 @@ app.post('/addInstructor', (req, res) => {
         })
 })
 
-app.get('/studentLogin', (req, res) => {
+app.get('/studentLogin', checkNotAuthenticatedStudent, (req, res) => {
     res.render('studentLogin.ejs')
 })
 
@@ -870,10 +871,147 @@ app.post('/studentLogin', passportStudent.authenticate('student', {
     failureFlash: true
 }))
 
+app.get('/studentHome', checkAuthenticatedStudent, (req, res) => {
+
+    Student.findOne({ id: req.user })
+        .then((student) => {
+            if (student.firstname == null) {
+                // Student logging for the first time
+                Program.find({})
+                    .populate(['degreeOffered', 'branchOffered', 'coursesOffered'])
+                    .exec()
+                    .then((program) => {
+                        res.render('studentDetails.ejs', { program });
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                    });
+            }
+
+            else {
+                Student.findOne({ id: req.user })
+                    .then((student) => {
+                        res.render('studentHome.ejs', { student });
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                    });
+            }
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+})
+
+app.post('/studentDetails', checkAuthenticatedStudent, (req, res) => {
+
+    if (req.body.password != req.body.repassword) {
+        // passwords do not match
+        res.redirect('/studentDetails');
+    }
+
+    else {
+        bcrypt.hash(req.body.password, saltRounds)
+            .then((hashedPassword) => {
+                Student.updateOne({ '_id': req.user }, { firstname: req.body.firstname, middlename: req.body.middlename, lastname: req.body.lastname, studentID: req.body.sid, programRegistered: req.body.myProgram, dob: req.body.dob, myemail: req.body.myemail, parentEmail: req.body.parentEmail, gender: req.body.gender, mobileNO: req.body.mobileNO, password: hashedPassword })
+                    .then(() => {
+
+                        Student.findOne({ id: req.user })
+                            .then((student) => {
+                                res.render('studentHome.ejs', { student });
+                            })
+                            .catch((err) => {
+                                console.log(err);
+                            });
+
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                    });
+            })
+            .catch((err) => {
+                console.log(err);
+            });
+    }
+
+})
+
 app.get('/instructorLogin', (req, res) => {
     res.render('instructorLogin.ejs')
 })
 
+app.post('/instructorLogin', passportInstructor.authenticate('instructor', {
+    successRedirect: '/instructorHome',
+    failureRedirect: '/instructorLogin',
+    failureFlash: true
+}))
+
+app.get('/instructorHome', checkAuthenticatedInstructor, (req, res) => {
+
+})
+
+app.delete('/logoutStudent', (req, res) => {
+    req.logOut(req.user, err => {
+        if (err) return next(err);
+        res.redirect('/studentLogin');
+    })
+})
+
+app.delete('/logoutInstructor', (req, res) => {
+    req.logOut(req.user, err => {
+        if (err) return next(err);
+        res.redirect('/instructorLogin');
+    })
+})
+
+app.delete('/logoutAdmin', (req, res) => {
+    req.logOut(req.user, err => {
+        if (err) return next(err);
+        res.redirect('/adminLogin');
+    })
+})
+
+function checkAuthenticatedStudent(req, res, next) {
+    if (req.isAuthenticated()) {
+        return next()
+    }
+    res.redirect('/studentLogin')
+}
+
+function checkNotAuthenticatedStudent(req, res, next) {
+    if (req.isAuthenticated()) {
+        return res.redirect('/studentHome')
+    }
+    next()
+}
+
+function checkAuthenticatedInstructor(req, res, next) {
+    if (req.isAuthenticated()) {
+        return next()
+    }
+    res.redirect('/instructorLogin')
+}
+
+function checkNotAuthenticatedInstructor(req, res, next) {
+    if (req.isAuthenticated()) {
+        return res.redirect('/instructorHome')
+    }
+    next()
+}
+
+function checkAuthenticatedAdmin(req, res, next) {
+    if (req.isAuthenticated()) {
+        return next()
+    }
+    res.redirect('/adminLogin')
+}
+
+function checkNotAuthenticatedAdmin(req, res, next) {
+    if (req.isAuthenticated()) {
+        return res.redirect('/adminHome')
+    }
+    next()
+}
 
 app.listen(3000, function () {
     console.log("Server started on port 3000");

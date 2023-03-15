@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <form action="/studentDetails" method="post">
+        <input type="text" placeholder="First Name" name="firstname">
+        <input type="text" placeholder="Middle Name" name="middlename">
+        <input type="text" placeholder="Last Name" name="lastname">
+        <input type="text" placeholder="Student ID" name="sid">
+        <select name="myProgram" required>
+            <option value="Select" selected>Select</option>
+
+            <% for (var k=0; k <program.length; k++) { %>
+                
+                <% var x=program[k].degreeOffered.name ; %>
+                <% var y=program[k].branchOffered.name ; %>
+
+                <option value="<%= program[k].id %>">
+                    <%= x + " " + y %>
+                </option>
+            <% } %>
+
+        </select>
+        <input type="date" placeholder="Date of Birth" name="dob">
+        <input type="text" placeholder="Mobile number" name="mobileNO">
+        <input type="email" placeholder="Personal email ID" name="myemail">
+        <input type="email" placeholder="Parent email ID" name="parentEmail">
+        <div class="radio-checkbox-container">
+            <p>Gender</p>
+            <label> <input type="radio" id="male" name="gender" value="Male" required> <span>Male</span></label>
+            <label> <input type="radio" id="female" name="gender" value="Female" required> <span>Female</span></label>
+            <label> <input type="radio" id="other" name="gender" value="Other" required> <span>Other</span></label>
+        </div>
+        <input type="password" name="password" placeholder="New password">
+        <input type="password" name="repassword" placeholder="Confirm password">
+        <button type="submit">Submit</button>
+    </form>
+</body>
+
+</html>
