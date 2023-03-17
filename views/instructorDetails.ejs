@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <form action="/instructorDetails" method="post">
+        <input type="text" placeholder="Full Name" name="fullname" value="<%= instructor.fullname %>" required>
+        <input type="date" placeholder="Date of Birth" name="dob" required>
+        <input type="text" placeholder="Mobile number" name="mobileNO" required>
+        <input type="email" placeholder="College email ID" name="email" value="<%= instructor.email %>" disabled>
+        <input type="email" placeholder="Personal email ID" name="myemail">
+        <div class="radio-checkbox-container">
+            <p>Gender</p>
+            <label> <input type="radio" id="male" name="gender" value="Male" required> <span>Male</span></label>
+            <label> <input type="radio" id="female" name="gender" value="Female" required> <span>Female</span></label>
+            <label> <input type="radio" id="other" name="gender" value="Other" required> <span>Other</span></label>
+        </div>
+        <input type="password" name="password" placeholder="New password">
+        <input type="password" name="repassword" placeholder="Confirm password">
+        <button type="submit">Submit</button>
+    </form>
+</body>
+
+</html>

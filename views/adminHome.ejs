@@ -7,10 +7,17 @@
     <title>Document</title>
 </head>
 <body>
+    <h1> Admin </h1>
     <button onclick="window.location.href = '/viewCourse'"> Course </button>
     <button onclick="window.location.href = '/viewProgram'"> Program</button>
     <button onclick="window.location.href = '/viewDegree'">  Degree</button>
     <button onclick="window.location.href = '/viewBranch'"> Branch</button>
     <button onclick="window.location.href = '/viewSemester'"> Semester</button>
+    <button onclick="window.location.href = '/addStudent'"> Add Student</button>
+    <button onclick="window.location.href = '/addInstructor'"> Add Instructor</button>
+    <button onclick="window.location.href = '/addAdmin'"> Add Admin</button>
+    <form action="/logoutAdmin?_method=DELETE" method="POST">
+        <button type="submit">Log Out</button>
+    </form>
 </body>
 </html>

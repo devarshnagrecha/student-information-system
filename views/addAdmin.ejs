@@ -7,9 +7,10 @@
     <title>Document</title>
 </head>
 <body>
-    <h1> <%= instructor.fullname %> </h1>
-    <form action="/logoutInstructor?_method=DELETE" method="POST">
-        <button type="submit">Log Out</button>
+    <form action="/addAdmin" method="post">
+        <input type="email" name="email" placeholder="Email ID">
+        <input type="password" name="password" placeholder="Password">
+        <button type="submit">Submit</button>
     </form>
 </body>
 </html>
